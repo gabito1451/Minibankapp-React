@@ -41,6 +41,7 @@ export const Register = () => {
   }, []);
 
   const onSubmit = (data) => {
+    delete data.confirmPin;
     const newUserObject = {
       ...data,
       transactions: [],
