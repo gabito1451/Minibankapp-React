@@ -1,28 +1,28 @@
 import "../css-folder/helper.css";
 import "../css-folder/styles.css";
 import React, { useEffect } from "react";
-import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllUsers } from "../common.js/get-all-users";
+import { getAllUsers } from "../common/get-all-users";
 
 export const Register = () => {
   const [accountNumber, setAccountNumber] = useState("");
   const registeredUsers = getAllUsers();
   const navigate = useNavigate();
+
   const schema = yup.object({
-    AccountName: yup.string().required("Account name required"),
-    AccountNumber: yup.number().required("Account number required"),
-    AccountPin: yup
+    accountName: yup.string().required("Account name required"),
+    accountNumber: yup.string().required("Account number required"),
+    accountPin: yup
       .string()
       .min(4)
       .max(4)
       .required("Account pin must be atleast four character"),
-    ConfirmPin: yup
+    confirmPin: yup
       .string()
-      .oneOf([yup.ref("AccountPin")], "Pins do not match")
+      .oneOf([yup.ref("accountPin")], "Pins do not match")
       .required(),
   });
 
@@ -31,11 +31,13 @@ export const Register = () => {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(schema),
+    validationSchema: schema,
   });
 
+  const generateAccountNumber = () => Math.random().toString().slice(2, 12);
+
   useEffect(() => {
-    setAccountNumber(Math.random().toString().slice(2, 12));
+    setAccountNumber(generateAccountNumber());
   }, []);
 
   const onSubmit = (data) => {
@@ -49,6 +51,7 @@ export const Register = () => {
     localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
     navigate("/");
   };
+
   return (
     <div className="container-fixed">
       <h1>Register</h1>
@@ -58,9 +61,10 @@ export const Register = () => {
           <input
             type="text"
             className="form-control"
-            {...register("AccountName")}
+            autoComplete="off"
+            {...register("accountName")}
           />
-          <p className="error">{errors.AccountName?.message}</p>
+          <p className="error">{errors.accountName?.message}</p>
         </div>
 
         <div className="form-group">
@@ -69,15 +73,16 @@ export const Register = () => {
             type="number"
             value={accountNumber}
             className="form-control"
-            {...register("AccountNumber")}
+            autoComplete="off"
+            {...register("accountNumber")}
             readOnly
           />
-          <p className="error">{errors.AccountNumber?.message}</p>
+          <p className="error">{errors.accountNumber?.message}</p>
           <button
             type="button"
             className="btn btn-info btn-sm"
             onClick={() =>
-              setAccountNumber(Math.random().toString().slice(2, 12))
+              setAccountNumber(generateAccountNumber())
             }
           >
             Generate
@@ -87,11 +92,12 @@ export const Register = () => {
         <div className="form-group">
           <label className="form-control-label"> Enter PIN</label>
           <input
-            type="number"
+            type="password"
             className="form-control"
-            {...register("AccountPin")}
+            maxLength={4}
+            {...register("accountPin")}
           />
-          <p className="error">{errors.AccountPin?.message}</p>
+          <p className="error">{errors.accountPin?.message}</p>
         </div>
 
         <div className="form-group">
@@ -99,11 +105,12 @@ export const Register = () => {
             <b>Confirm PIN</b>
           </label>
           <input
-            type="number"
+            type="password"
             className="form-control"
-            {...register("ConfirmPin")}
+            maxLength={4}
+            {...register("confirmPin")}
           />
-          <p className="error">{errors.ConfirmPin?.message}</p>
+          <p className="error">{errors.confirmPin?.message}</p>
         </div>
 
         <button type="submit" className="btn btn-primary">
@@ -111,7 +118,7 @@ export const Register = () => {
         </button>
       </form>
       <p className="text-center">
-        Already have an account? <Link to="/">SIGN IN</Link>
+        Already have an account? <Link to="/">Sign In</Link>
       </p>
     </div>
   );
