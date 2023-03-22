@@ -1,20 +1,25 @@
 import "../css-folder/helper.css";
 import "../css-folder/styles.css";
-import React, { useEffect } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getAllUsers } from "../common/get-all-users";
 
 export const Register = () => {
-  const [accountNumber, setAccountNumber] = useState("");
   const registeredUsers = getAllUsers();
+  const generateAccountNumber = () => Math.random().toString().slice(2, 12);
+
+  const [accountNumber, setAccountNumber] = useState(generateAccountNumber());
   const navigate = useNavigate();
 
   const schema = yup.object({
     accountName: yup.string().required("Account name required"),
-    accountNumber: yup.string().required("Account number required"),
+    accountNumber: yup
+      .string()
+      .required("Account number required"),
     accountPin: yup
       .string()
       .min(4)
@@ -31,22 +36,16 @@ export const Register = () => {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    validationSchema: schema,
+    resolver: yupResolver(schema)
   });
-
-  const generateAccountNumber = () => Math.random().toString().slice(2, 12);
-
-  useEffect(() => {
-    setAccountNumber(generateAccountNumber());
-  }, []);
-
+  
   const onSubmit = (data) => {
     delete data.confirmPin;
     const newUserObject = {
       ...data,
       transactions: [],
     };
-
+  
     // add the user to our database
     registeredUsers.push(newUserObject);
     localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
@@ -75,8 +74,8 @@ export const Register = () => {
             value={accountNumber}
             className="form-control"
             autoComplete="off"
-            {...register("accountNumber")}
             readOnly
+            {...register("accountNumber")}
           />
           <p className="error">{errors.accountNumber?.message}</p>
           <button
