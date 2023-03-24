@@ -65,10 +65,12 @@ export const Login = () => {
       <form className="account-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <select ref={selectRef} className="form-control">
+            <option value="">Select Account</option>
             {option}
           </select>
         </div>
         <div className="form-group">
+          <label className="form-control-label">Account Pin</label>
           <input
             type="number"
             className="form-control"
