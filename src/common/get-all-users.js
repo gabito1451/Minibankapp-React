@@ -3,3 +3,5 @@ export const getAllUsers = () => {
   const usersArr = JSON.parse(usersStr) || [];
   return usersArr;
 };
+
+export default getAllUsers;

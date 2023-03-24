@@ -17,9 +17,7 @@ export const Register = () => {
 
   const schema = yup.object({
     accountName: yup.string().required("Account name required"),
-    accountNumber: yup
-      .string()
-      .required("Account number required"),
+    accountNumber: yup.string().required("Account number required"),
     accountPin: yup
       .string()
       .min(4)
@@ -27,7 +25,7 @@ export const Register = () => {
       .required("Account pin must be atleast four character"),
     confirmPin: yup
       .string()
-      .oneOf([yup.ref("accountPin")], "Pins do not match")
+      .oneOf([yup.ref("accountPin"), null], "Pins do not match")
       .required(),
   });
 
@@ -36,16 +34,16 @@ export const Register = () => {
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(schema),
   });
-  
+
   const onSubmit = (data) => {
     delete data.confirmPin;
     const newUserObject = {
       ...data,
       transactions: [],
     };
-  
+
     // add the user to our database
     registeredUsers.push(newUserObject);
     localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
@@ -81,9 +79,7 @@ export const Register = () => {
           <button
             type="button"
             className="btn btn-info btn-sm"
-            onClick={() =>
-              setAccountNumber(generateAccountNumber())
-            }
+            onClick={() => setAccountNumber(generateAccountNumber())}
           >
             Generate
           </button>
