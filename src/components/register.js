@@ -1,15 +1,13 @@
-import "../css-folder/helper.css";
-import "../css-folder/styles.css";
 import React from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllUsers } from "../common/get-all-users";
+import { getAllUsers } from "../helpers/user-helper";
 
 export const Register = () => {
-  const registeredUsers = getAllUsers();
+  const users = getAllUsers();
   const generateAccountNumber = () => Math.random().toString().slice(2, 12);
 
   const [accountNumber, setAccountNumber] = useState(generateAccountNumber());
@@ -17,16 +15,18 @@ export const Register = () => {
 
   const schema = yup.object({
     accountName: yup.string().required("Account name required"),
-    accountNumber: yup.string().required("Account number required"),
+    accountNumber: yup
+      .string()
+      .required("Account number required")
+      .length(10, 'Account number must be exactly 10 digits'),
     accountPin: yup
       .string()
-      .min(4)
-      .max(4)
-      .required("Account pin must be atleast four character"),
+      .required("Account PIN required")
+      .length(4, 'Account PIN must be exactly 4 digits'),
     confirmPin: yup
       .string()
+      .required()
       .oneOf([yup.ref("accountPin"), null], "Pins do not match")
-      .required(),
   });
 
   const {
@@ -45,8 +45,8 @@ export const Register = () => {
     };
 
     // add the user to our database
-    registeredUsers.push(newUserObject);
-    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
+    users.push(newUserObject);
+    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(users));
     navigate("/");
   };
 
@@ -62,7 +62,7 @@ export const Register = () => {
             autoComplete="off"
             {...register("accountName")}
           />
-          <p className="error">{errors.accountName?.message}</p>
+          <p className="form-error">{errors.accountName?.message}</p>
         </div>
 
         <div className="form-group">
@@ -75,7 +75,7 @@ export const Register = () => {
             readOnly
             {...register("accountNumber")}
           />
-          <p className="error">{errors.accountNumber?.message}</p>
+          <p className="form-error">{errors.accountNumber?.message}</p>
           <button
             type="button"
             className="btn btn-info btn-sm"
@@ -93,7 +93,7 @@ export const Register = () => {
             maxLength={4}
             {...register("accountPin")}
           />
-          <p className="error">{errors.accountPin?.message}</p>
+          <p className="form-error">{errors.accountPin?.message}</p>
         </div>
 
         <div className="form-group">
@@ -106,7 +106,7 @@ export const Register = () => {
             maxLength={4}
             {...register("confirmPin")}
           />
-          <p className="error">{errors.confirmPin?.message}</p>
+          <p className="form-error">{errors.confirmPin?.message}</p>
         </div>
 
         <button type="submit" className="btn btn-primary">

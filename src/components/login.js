@@ -1,34 +1,30 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import getAllUsers from "../common/get-all-users";
-import getUserByAccountNumber from "../common/get-user-act-no";
+import { getAllUsers, getUserByAccountNumber } from "../helpers/user-helper";
 import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
-  const [option, setOption] = useState([]);
   const [inputValue, setInputValue] = useState();
   const navigate = useNavigate();
-  const selectRef = useRef(null);
+
+  const users = getAllUsers();
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
-
-  useEffect(() => {
-    const accountNames = getAllUsers();
-    const optionElem = accountNames.map((user, index) => (
-      <option key={index} value={user.accountNumber}>
-        {user.accountName} ({user.accountPin})
-      </option>
-    ));
-
-    setOption(optionElem);
-  }, []);
+  
   const schema = yup.object({
-    accountPin: yup.string().min(4).max(4).required("Account pin required"),
+    accountNumber: yup
+      .string()
+      .required("Account number required")
+      .length(10, 'Account number must be exactly 10 digits'),
+    accountPin: yup
+      .string()
+      .required("Account PIN required")
+      .length(4, 'Account PIN must be exactly 4 digits')
   });
 
   const {
@@ -38,20 +34,22 @@ export const Login = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
+
   const onSubmit = (data) => {
-    const accountNumber = selectRef.current.value;
+    const { accountNumber, accountPin } = data;
 
     console.log(accountNumber);
-    const existingUser = getUserByAccountNumber(accountNumber);
+    const user = getUserByAccountNumber(accountNumber);
 
-    if (existingUser.accountPin !== data.accountPin) {
-      alert("Incorrect PIN");
-      return;
-    }
-    if (!existingUser) {
+    if (!user) {
       alert("Account not found");
       return;
     }
+    if (user.accountPin !== accountPin) {
+      alert("Incorrect PIN");
+      return;
+    }
+
     localStorage.setItem(
       "MB_LOGGEDIN_USER_ACCOUNT_NUMBER",
       JSON.stringify(accountNumber)
@@ -64,21 +62,30 @@ export const Login = () => {
       <h1>Login</h1>
       <form className="account-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
-          <select ref={selectRef} className="form-control">
+          <select
+            className="form-control"
+            {...register("accountNumber")}
+          >
             <option value="">Select Account</option>
-            {option}
+            {users.map(({ accountNumber, accountName, accountPin }) => (
+              <option key={accountNumber} value={accountNumber}>
+                {accountName} ({accountPin})
+              </option>
+            ))}
           </select>
+          <p className="form-error">{errors.accountNumber?.message}</p>
         </div>
         <div className="form-group">
-          <label className="form-control-label">Account Pin</label>
+          <label className="form-control-label">Account PIN</label>
           <input
-            type="number"
+            type="password"
             className="form-control"
+            maxLength={4}
             onChange={handleInputChange}
             {...register("accountPin")}
           />
           {inputValue}
-          <p className="error">{errors.accountPin?.message}</p>
+          <p className="form-error">{errors.accountPin?.message}</p>
         </div>
         <button type="submit" className="btn btn-primary">
           Login

@@ -36,3 +36,7 @@ div#pin-update-section {
 .error {
   color: red;
 }
+.form-error {
+  color: red;
+  margin-top: 10px
+}
