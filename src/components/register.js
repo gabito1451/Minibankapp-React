@@ -32,10 +32,17 @@ export const Register = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
   });
+
+  const handleRegenerateAccountNumber = () => {
+    const newAccountNumber = generateAccountNumber();
+    setAccountNumber(newAccountNumber);
+    setValue('accountNumber', newAccountNumber);
+  };
 
   const onSubmit = (data) => {
     delete data.confirmPin;
@@ -79,9 +86,9 @@ export const Register = () => {
           <button
             type="button"
             className="btn btn-info btn-sm"
-            onClick={() => setAccountNumber(generateAccountNumber())}
+            onClick={handleRegenerateAccountNumber}
           >
-            Generate
+            Re-generate
           </button>
         </div>
 
