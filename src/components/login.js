@@ -1,30 +1,39 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { getAllUsers, getUserByAccountNumber } from "../helpers/user-helper";
+import {
+  getAllUsers,
+  getUserByAccountNumber,
+  isLoggedIn,
+} from "../helpers/user-helper";
 import { useNavigate } from "react-router-dom";
 
 export const Login = () => {
-  const [inputValue, setInputValue] = useState();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (isLoggedIn()) {
+      navigate("/transaction");
+    }
+  }, [navigate]);
+  const [inputValue, setInputValue] = useState();
 
   const users = getAllUsers();
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
-  
+
   const schema = yup.object({
     accountNumber: yup
       .string()
       .required("Account number required")
-      .length(10, 'Account number must be exactly 10 digits'),
+      .length(10, "Account number must be exactly 10 digits"),
     accountPin: yup
       .string()
       .required("Account PIN required")
-      .length(4, 'Account PIN must be exactly 4 digits')
+      .length(4, "Account PIN must be exactly 4 digits"),
   });
 
   const {
@@ -62,10 +71,7 @@ export const Login = () => {
       <h1>Login</h1>
       <form className="account-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
-          <select
-            className="form-control"
-            {...register("accountNumber")}
-          >
+          <select className="form-control" {...register("accountNumber")}>
             <option value="">Select Account</option>
             {users.map(({ accountNumber, accountName, accountPin }) => (
               <option key={accountNumber} value={accountNumber}>
