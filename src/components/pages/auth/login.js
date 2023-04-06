@@ -1,30 +1,40 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { getAllUsers, getUserByAccountNumber } from "../helpers/user-helper";
 import { useNavigate } from "react-router-dom";
+import {
+  getAllUsers,
+  getUserByAccountNumber,
+  isLoggedIn,
+} from "../../../helpers/user.helper";
 
 export const Login = () => {
-  const [inputValue, setInputValue] = useState();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (isLoggedIn()) {
+      navigate("/transactions");
+    }
+  }, [navigate]);
+
+  const [inputValue, setInputValue] = useState();
 
   const users = getAllUsers();
 
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
-  
+
   const schema = yup.object({
     accountNumber: yup
       .string()
       .required("Account number required")
-      .length(10, 'Account number must be exactly 10 digits'),
+      .length(10, "Account number must be exactly 10 digits"),
     accountPin: yup
       .string()
       .required("Account PIN required")
-      .length(4, 'Account PIN must be exactly 4 digits')
+      .length(4, "Account PIN must be exactly 4 digits"),
   });
 
   const {
@@ -37,8 +47,6 @@ export const Login = () => {
 
   const onSubmit = (data) => {
     const { accountNumber, accountPin } = data;
-
-    console.log(accountNumber);
     const user = getUserByAccountNumber(accountNumber);
 
     if (!user) {
@@ -50,22 +58,16 @@ export const Login = () => {
       return;
     }
 
-    localStorage.setItem(
-      "MB_LOGGEDIN_USER_ACCOUNT_NUMBER",
-      JSON.stringify(accountNumber)
-    );
-    navigate("/transaction");
+    localStorage.setItem("MB_LOGGEDIN_USER_ACCOUNT_NUMBER", accountNumber);
+    navigate("/transactions", { replace: true });
   };
 
   return (
     <div className="container-fixed">
-      <h1>Login</h1>
+      <h1 className="text-center text-3xl font-bold">Login</h1>
       <form className="account-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
-          <select
-            className="form-control"
-            {...register("accountNumber")}
-          >
+          <select className="form-control" {...register("accountNumber")}>
             <option value="">Select Account</option>
             {users.map(({ accountNumber, accountName, accountPin }) => (
               <option key={accountNumber} value={accountNumber}>

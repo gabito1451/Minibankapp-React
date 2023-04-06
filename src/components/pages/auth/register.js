@@ -4,7 +4,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllUsers } from "../helpers/user-helper";
+import { getAllUsers } from "../../../helpers/user.helper";
 
 export const Register = () => {
   const users = getAllUsers();
@@ -54,12 +54,12 @@ export const Register = () => {
     // add the user to our database
     users.push(newUserObject);
     localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(users));
-    navigate("/");
+    navigate("/login");
   };
 
   return (
     <div className="container-fixed">
-      <h1>Register</h1>
+      <h1 className="text-center text-3xl font-bold">Register</h1>
       <form className="account-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group" type="text">
           <label className="form-control-label">Account Name</label>
