@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { Navbar } from "./common-session-component/navbar";
-import { AccountBalance } from "./common-session-component/acct-balance";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -10,13 +8,14 @@ import {
   getAllUsers,
   getUserCurrentBalance,
   getUserIndexByAccountNumber,
-} from "../helpers/user-helper";
+  getLoggedInUserAccountNumber,
+} from "../../../helpers/user.helper";
+import DashboardLayout from "../../layout/dashboard.layout";
+
 export const Deposit = () => {
   const navigate = useNavigate();
   const [inputValue, setInputValue] = useState();
-  const currentUserAccountNumber = JSON.parse(
-    localStorage.getItem("MB_LOGGEDIN_USER_ACCOUNT_NUMBER")
-  );
+  const currentUserAccountNumber = getLoggedInUserAccountNumber();
   const currentUser = getUserByAccountNumber(currentUserAccountNumber);
 
   const schema = yup.object({
@@ -62,15 +61,12 @@ export const Deposit = () => {
     registeredUsers[currentUserIndex].transactions.push(transactionDetails);
 
     localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
-    navigate("/transaction");
+    navigate("/transactions");
   };
 
   return (
-    <div>
-      <Navbar />
-      <AccountBalance />
-      <h1>Make Deposits</h1>
-      <form className="container-fixed" onSubmit={handleSubmit(onSubmit)}>
+    <DashboardLayout pageTitle="Deposit">
+      <form className="form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <label className="form-control-label"> Amount</label>
           <input
@@ -98,7 +94,6 @@ export const Deposit = () => {
           Deposit
         </button>
       </form>
-    </div>
+    </DashboardLayout>
   );
 };
-6;

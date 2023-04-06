@@ -3,20 +3,21 @@ import { Link } from "react-router-dom";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useNavigate } from "react-router-dom";
 import {
   getAllUsers,
   getUserByAccountNumber,
   isLoggedIn,
-} from "../helpers/user-helper";
-import { useNavigate } from "react-router-dom";
+} from "../../../helpers/user.helper";
 
 export const Login = () => {
   const navigate = useNavigate();
   useEffect(() => {
     if (isLoggedIn()) {
-      navigate("/transaction");
+      navigate("/transactions");
     }
   }, [navigate]);
+
   const [inputValue, setInputValue] = useState();
 
   const users = getAllUsers();
@@ -46,8 +47,6 @@ export const Login = () => {
 
   const onSubmit = (data) => {
     const { accountNumber, accountPin } = data;
-
-    console.log(accountNumber);
     const user = getUserByAccountNumber(accountNumber);
 
     if (!user) {
@@ -59,16 +58,13 @@ export const Login = () => {
       return;
     }
 
-    localStorage.setItem(
-      "MB_LOGGEDIN_USER_ACCOUNT_NUMBER",
-      JSON.stringify(accountNumber)
-    );
-    navigate("/transaction");
+    localStorage.setItem("MB_LOGGEDIN_USER_ACCOUNT_NUMBER", accountNumber);
+    navigate("/transactions", { replace: true });
   };
 
   return (
     <div className="container-fixed">
-      <h1>Login</h1>
+      <h1 className="text-center text-3xl font-bold">Login</h1>
       <form className="account-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <select className="form-control" {...register("accountNumber")}>
