@@ -72,10 +72,9 @@ export const Deposit = () => {
           <input
             type="number"
             className="form-control"
-            required
             {...register("amount")}
           />
-          <p>{errors.amount?.message}</p>
+          <p className="form-error">{errors.amount?.message}</p>
         </div>
         <div className="form-group">
           <label className="form-control-label">PIN</label>
@@ -83,12 +82,11 @@ export const Deposit = () => {
             type="password"
             maxLength={4}
             className="form-control"
-            required
             onChange={handleInputChange}
             {...register("accountPin")}
           />
           {inputValue}
-          <p>{errors.accountPin?.message}</p>
+          <p className="form-error">{errors.accountPin?.message}</p>
         </div>
         <button type="submit" className="btn btn-secondary">
           Deposit
