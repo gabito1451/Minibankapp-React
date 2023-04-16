@@ -35,6 +35,7 @@ const DashboardLayout = ({ pageTitle, children }) => {
           <div>
             <button
               className="btn btn-primary text-xl mr-6 cursor-pointer"
+              e
               onClick={handleLogout}
             >
               Log out
