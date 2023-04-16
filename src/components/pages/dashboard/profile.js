@@ -95,7 +95,7 @@ export const Profile = () => {
     ) {
       alert("use a different password for update");
     }
-    if (checked === true && data.newPin === " ") {
+    if (checked === true && data.newPin === "") {
       data.newPin = registeredUsers[currentUserIndex].accountPin;
     }
     if (checked === true && data.newPin === data.confirmNewPin) {
