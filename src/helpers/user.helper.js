@@ -10,7 +10,8 @@ export const getLoggedInUserAccountNumber = () => {
 
 export const isLoggedIn = () => {
   const accountNumber = getLoggedInUserAccountNumber();
-  return !!accountNumber;
+  const user = getUserByAccountNumber(accountNumber);
+  return !!user;
 };
 
 export const getUserByAccountNumber = (accountNumber) => {
@@ -27,12 +28,22 @@ export const getUserIndexByAccountNumber = (accountNumber) => {
   return userIndex;
 };
 
-export const getUserTransactions = (accountNumber = getLoggedInUserAccountNumber()) => {
+export const getUserTransactions = (
+  accountNumber = getLoggedInUserAccountNumber()
+) => {
   const user = getUserByAccountNumber(accountNumber);
   return user?.transactions || [];
-}
+};
+export const getUserAccountName = (
+  accountNumber = getLoggedInUserAccountNumber()
+) => {
+  const user = getUserByAccountNumber(accountNumber);
+  return user?.accountName;
+};
 
-export const getUserCurrentBalance = (accountNumber = getLoggedInUserAccountNumber()) => {
+export const getUserCurrentBalance = (
+  accountNumber = getLoggedInUserAccountNumber()
+) => {
   const transactions = getUserTransactions(accountNumber);
   const prevTransaction = transactions[transactions.length - 1];
   const currentBalance = prevTransaction?.balanceAfter || 0;
