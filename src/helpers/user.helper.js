@@ -34,12 +34,6 @@ export const getUserTransactions = (
   const user = getUserByAccountNumber(accountNumber);
   return user?.transactions || [];
 };
-export const getUserAccountName = (
-  accountNumber = getLoggedInUserAccountNumber()
-) => {
-  const user = getUserByAccountNumber(accountNumber);
-  return user?.accountName;
-};
 
 export const getUserCurrentBalance = (
   accountNumber = getLoggedInUserAccountNumber()

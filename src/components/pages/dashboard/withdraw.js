@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import DashboardLayout from "../../layout/dashboard.layout";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -14,7 +14,7 @@ import {
 
 export const Withdraw = () => {
   const navigate = useNavigate();
-  const [inputValue, setInputValue] = useState();
+
   const currentUserAccountNumber = getLoggedInUserAccountNumber();
   const currentUser = getUserByAccountNumber(currentUserAccountNumber);
 
@@ -25,10 +25,6 @@ export const Withdraw = () => {
       .required("Account PIN required")
       .length(4, "Account PIN must be exactly 4 digits"),
   });
-
-  const handleInputChange = (event) => {
-    setInputValue(event.target.value);
-  };
 
   const {
     register,
@@ -91,10 +87,9 @@ export const Withdraw = () => {
             maxLength={4}
             className="form-control"
             required
-            onChange={handleInputChange}
             {...register("accountPin")}
           />
-          {inputValue}
+
           <p className="form-error">{errors.accountPin?.message}</p>
         </div>
         <button type="submit" className="btn btn-secondary">

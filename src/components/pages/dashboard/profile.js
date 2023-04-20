@@ -5,8 +5,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import {
   getAllUsers,
   getUserIndexByAccountNumber,
-  getUserAccountName,
   getLoggedInUserAccountNumber,
+  getUserByAccountNumber,
 } from "../../../helpers/user.helper";
 import { useNavigate } from "react-router-dom";
 import { Button, Popconfirm } from "antd";
@@ -19,28 +19,10 @@ export const Profile = () => {
 
   const navigate = useNavigate();
 
-  const [accountName, setAccountName] = useState(getUserAccountName());
-  const [currentPinCode, SetCurrentPinCode] = useState();
-  const [newPinCode, setNewPinCode] = useState();
-  const [confirmNewPinCode, setConfirmNewPinCode] = useState();
-
   const [checked, setchecked] = useState(false);
 
-  const handleToggleChange = () => {
+  const handleChangePinToggle = () => {
     setchecked(!checked);
-  };
-
-  const handleAccountNameChange = (event) => {
-    setAccountName(event.target.value);
-  };
-  const handleCurrentPinChange = (event) => {
-    SetCurrentPinCode(event.target.value);
-  };
-  const handleNewPinChange = (event) => {
-    setNewPinCode(event.target.value);
-  };
-  const handleConfirmNewPineChange = (event) => {
-    setConfirmNewPinCode(event.target.value);
   };
 
   const closeUserAccount = () => {
@@ -73,35 +55,28 @@ export const Profile = () => {
       currentUserAccountNumber
     );
     registeredUsers[currentUserIndex].accountName = data.accountName;
-    if (checked === true && data.currentPin === "") {
-      alert("Insert Pin");
-      return;
-    }
-    if (
-      checked === true &&
-      data.currentPin !== registeredUsers[currentUserIndex].accountPin
-    ) {
-      alert("Pin Incorrect");
-      return;
-    }
+    if (checked) {
+      const savedUserPin = registeredUsers[currentUserIndex].accountPin;
+      if (!data.currentPin) {
+        alert("Current PIN is required");
+        return;
+      }
+      if (data.currentPin !== savedUserPin) {
+        alert("Current PIN is incorrect");
+        return;
+      }
+      if (data.newPin !== data.confirmNewPin) {
+        alert("PINs do not match");
+        return;
+      }
+      if (data.newPin === savedUserPin) {
+        alert("You entered your current PIN. Choose a different PIN");
+        return;
+      }
 
-    if (checked === true && data.newPin !== data.confirmNewPin) {
-      alert("Pins do not match");
-      return;
-    }
-    if (
-      checked === true &&
-      data.confirmNewPin === registeredUsers[currentUserIndex].accountPin
-    ) {
-      alert("use a different password for update");
-    }
-    if (checked === true && data.newPin === " ") {
-      data.newPin = registeredUsers[currentUserIndex].accountPin;
-    }
-    if (checked === true && data.newPin === data.confirmNewPin) {
+      // all is good
       registeredUsers[currentUserIndex].accountPin = data.newPin;
     }
-
     localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
     navigate("/transactions");
   };
@@ -113,9 +88,10 @@ export const Profile = () => {
             <label className="form-control-label">Account Name</label>
             <input
               type="text"
-              placeholder={accountName}
+              placeholder={
+                getUserByAccountNumber(currentUserAccountNumber).accountName
+              }
               className="form-control"
-              onChange={handleAccountNameChange}
               {...register("accountName")}
             />
 
@@ -135,7 +111,7 @@ export const Profile = () => {
             <input
               type="checkbox"
               className="changePin"
-              onClick={handleToggleChange}
+              onClick={handleChangePinToggle}
             />
             Change Pin
           </label>
@@ -147,10 +123,9 @@ export const Profile = () => {
                   type="password"
                   maxLength={4}
                   className="form-control"
-                  onChange={handleCurrentPinChange}
                   {...register("currentPin")}
                 />
-                {currentPinCode}
+
                 <p className="form-error">{errors.currentPin?.message}</p>
               </div>
               <div className="form-group">
@@ -159,10 +134,9 @@ export const Profile = () => {
                   type="password"
                   maxLength={4}
                   className="form-control"
-                  onChange={handleNewPinChange}
                   {...register("newPin")}
                 />
-                {newPinCode}
+
                 <p className="form-error">{errors.newPin?.message}</p>
               </div>
               <div className="form-group">
@@ -171,10 +145,9 @@ export const Profile = () => {
                   type="password"
                   maxLength={4}
                   className="form-control"
-                  onChange={handleConfirmNewPineChange}
                   {...register("confirmNewPin")}
                 />
-                {confirmNewPinCode}
+
                 <p className="form-error">{errors.confirmNewPin?.message}</p>
               </div>
             </div>

@@ -151,7 +151,7 @@ textarea {
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-* Spacing */ .min-w-100 {
+.min-w-100 {
   min-width: 100px;
 }
 .min-w-150 {

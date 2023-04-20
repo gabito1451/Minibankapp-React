@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import DashboardLayout from "../../layout/dashboard.layout";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -15,22 +15,18 @@ import {
 export const Transfer = () => {
   const registeredUsers = getAllUsers();
   const navigate = useNavigate();
-  const [inputValue, setInputValue] = useState();
+
   const currentUserAccountNumber = getLoggedInUserAccountNumber();
   const currentUser = getUserByAccountNumber(currentUserAccountNumber);
 
   const schema = yup.object({
-    selectAccount: yup.string(),
+    selectedAccount: yup.string().required("Select an account"),
     amount: yup.string().required("Withdrawal amount required"),
     accountPin: yup
       .string()
       .required("Account PIN required")
       .length(4, "Account PIN must be exactly 4 digits"),
   });
-
-  const handleInputChange = (event) => {
-    setInputValue(event.target.value);
-  };
 
   const {
     register,
@@ -89,7 +85,7 @@ export const Transfer = () => {
                 </option>
               ))}
           </select>
-          <p className="form-error">{errors.selectAccount?.message}</p>
+          <p className="form-error">{errors.selectedAccount?.message}</p>
         </div>
 
         <div className="form-group">
@@ -107,10 +103,8 @@ export const Transfer = () => {
             type="password"
             maxLength={4}
             className="form-control"
-            onChange={handleInputChange}
             {...register("accountPin")}
           />
-          {inputValue}
           <p className="form-eror">{errors.accountPin?.message}</p>
         </div>
         <button type="submit" className="btn btn-secondary">
