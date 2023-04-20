@@ -19,40 +19,10 @@ body {
   margin-bottom: 30px;
 }
 
-#regenerate-account-number-btn {
-  margin-top: 5px;
-}
-
-.table {
-  justify-content: center;
-  align-items: center;
-  border: none;
-}
-.btn-danger {
-  margin-left: 780px;
-  margin-top: 10px;
-}
-div#pin-update-section {
-  display: none;
-}
-#confirm-close-btn-action {
-  display: none;
-}
-.error {
-  color: red;
-}
 .form-error {
   color: red;
   margin-top: 10px;
 }
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 100px;
-  width: 100%;
-  background: whitesmoke;
-}
-.link {
-  text-decoration: none;
+.changePin {
+  margin-bottom: 20px;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -14,7 +14,7 @@ import DashboardLayout from "../../layout/dashboard.layout";
 
 export const Deposit = () => {
   const navigate = useNavigate();
-  const [inputValue, setInputValue] = useState();
+
   const currentUserAccountNumber = getLoggedInUserAccountNumber();
   const currentUser = getUserByAccountNumber(currentUserAccountNumber);
 
@@ -25,10 +25,6 @@ export const Deposit = () => {
       .required("Account PIN required")
       .length(4, "Account PIN must be exactly 4 digits"),
   });
-
-  const handleInputChange = (event) => {
-    setInputValue(event.target.value);
-  };
 
   const {
     register,
@@ -72,10 +68,9 @@ export const Deposit = () => {
           <input
             type="number"
             className="form-control"
-            required
             {...register("amount")}
           />
-          <p>{errors.amount?.message}</p>
+          <p className="form-error">{errors.amount?.message}</p>
         </div>
         <div className="form-group">
           <label className="form-control-label">PIN</label>
@@ -83,12 +78,10 @@ export const Deposit = () => {
             type="password"
             maxLength={4}
             className="form-control"
-            required
-            onChange={handleInputChange}
             {...register("accountPin")}
           />
-          {inputValue}
-          <p>{errors.accountPin?.message}</p>
+
+          <p className="form-error">{errors.accountPin?.message}</p>
         </div>
         <button type="submit" className="btn btn-secondary">
           Deposit
