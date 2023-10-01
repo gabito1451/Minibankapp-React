@@ -4,57 +4,53 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllUsers } from "../../../helpers/user.helper";
+import api from "../../../api/mb-users-account";
+
+//
 
 export const Register = () => {
-  const users = getAllUsers();
-  const generateAccountNumber = () => Math.random().toString().slice(2, 12);
-
-  const [accountNumber, setAccountNumber] = useState(generateAccountNumber());
   const navigate = useNavigate();
+  const generateAccountNumber = () => Math.random().toString().slice(2, 12);
+  const [accountNumber, setAccountNumber] = useState(generateAccountNumber());
+  const [users, setUsers] = useState([]);
 
   const schema = yup.object({
     accountName: yup.string().required("Account name required"),
     accountNumber: yup
       .string()
       .required("Account number required")
-      .length(10, 'Account number must be exactly 10 digits'),
+      .length(10, "Account number must be exactly 10 digits"),
     accountPin: yup
       .string()
       .required("Account PIN required")
-      .length(4, 'Account PIN must be exactly 4 digits'),
+      .length(4, "Account PIN must be exactly 4 digits"),
     confirmPin: yup
       .string()
       .required()
-      .oneOf([yup.ref("accountPin"), null], "Pins do not match")
+      .oneOf([yup.ref("accountPin"), null], "Pins do not match"),
   });
-
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
   });
-
-  const handleRegenerateAccountNumber = () => {
-    const newAccountNumber = generateAccountNumber();
-    setAccountNumber(newAccountNumber);
-    setValue('accountNumber', newAccountNumber);
-  };
-
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     delete data.confirmPin;
     const newUserObject = {
       ...data,
       transactions: [],
     };
+    try {
+      const response = await api.post("/MB_USER_ACCOUNTS", newUserObject);
+      const allRegisteredUsers = [...users, response.data];
+      setUsers(allRegisteredUsers);
+    } catch (error) {
+      console.log(error);
+    }
 
-    // add the user to our database
-    users.push(newUserObject);
-    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(users));
-    navigate("/login");
+    navigate("/");
   };
 
   return (
@@ -71,7 +67,6 @@ export const Register = () => {
           />
           <p className="form-error">{errors.accountName?.message}</p>
         </div>
-
         <div className="form-group">
           <label className="form-control-label">Account Number</label>
           <input
@@ -86,12 +81,11 @@ export const Register = () => {
           <button
             type="button"
             className="btn btn-info btn-sm"
-            onClick={handleRegenerateAccountNumber}
+            onClick={() => setAccountNumber(generateAccountNumber())}
           >
-            Re-generate
+            Generate
           </button>
         </div>
-
         <div className="form-group">
           <label className="form-control-label"> Enter PIN</label>
           <input
@@ -102,7 +96,6 @@ export const Register = () => {
           />
           <p className="form-error">{errors.accountPin?.message}</p>
         </div>
-
         <div className="form-group">
           <label className="form-control-label">
             <b>Confirm PIN</b>
@@ -115,7 +108,6 @@ export const Register = () => {
           />
           <p className="form-error">{errors.confirmPin?.message}</p>
         </div>
-
         <button type="submit" className="btn btn-primary">
           Register
         </button>

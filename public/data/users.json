@@ -1,0 +1,75 @@
+{
+  "MB_USER_ACCOUNTS": [
+    {
+      "accountName": "we",
+      "accountNumber": "5687962963",
+      "accountPin": "1111",
+      "transactions": [],
+      "id": 1
+    },
+    {
+      "accountName": "izu",
+      "accountNumber": "3684031644",
+      "accountPin": "1111",
+      "transactions": [
+        {
+          "timestamp": "2023-09-30T22:01:07.127Z",
+          "transactionReference": "TR1696111267127",
+          "type": "Deposit",
+          "amount": 1000,
+          "balanceBefore": 0,
+          "balanceAfter": 1000
+        },
+        {
+          "timestamp": "2023-09-30T22:02:34.652Z",
+          "transactionReference": "TR1696111354652",
+          "type": "Withdraw",
+          "amount": 100,
+          "balanceBefore": 1000,
+          "balanceAfter": 900
+        },
+        {
+          "timestamp": "2023-09-30T22:03:01.629Z",
+          "transactionReference": "TR1696111381629",
+          "type": "Transfer",
+          "amount": 100,
+          "balanceBefore": 900,
+          "balanceAfter": 800,
+          "beneficiary": "we"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "accountName": "gabriel",
+      "accountNumber": "7216561309",
+      "accountPin": "1111",
+      "transactions": [],
+      "id": 3
+    },
+    {
+      "accountName": "vikki",
+      "accountNumber": "3051746006",
+      "accountPin": "1111",
+      "transactions": [
+        {
+          "timestamp": "2023-10-01T15:52:06.743Z",
+          "transactionReference": "TR1696175526743",
+          "type": "Deposit",
+          "amount": 1000,
+          "balanceBefore": 0,
+          "balanceAfter": 1000
+        },
+        {
+          "timestamp": "2023-10-01T15:52:35.464Z",
+          "transactionReference": "TR1696175555464",
+          "type": "Withdraw",
+          "amount": 100,
+          "balanceBefore": 1000,
+          "balanceAfter": 900
+        }
+      ],
+      "id": 4
+    }
+  ]
+}

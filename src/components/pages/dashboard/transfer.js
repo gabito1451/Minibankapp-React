@@ -1,32 +1,51 @@
-import React from "react";
+import React,{useState,useEffect} from "react";
 import DashboardLayout from "../../layout/dashboard.layout";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import {
+    getAllUsers, 
   getUserByAccountNumber,
-  getAllUsers,
   getUserCurrentBalance,
   getUserIndexByAccountNumber,
   getLoggedInUserAccountNumber,
 } from "../../../helpers/user.helper";
+import api from "../../../api/mb-users-account"
+
 
 export const Transfer = () => {
-  const registeredUsers = getAllUsers();
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const currentUserAccountNumber = getLoggedInUserAccountNumber();
+    const [userData, setUserData] = useState([]);
+    const [users, setUsers] = useState([]);
 
-  const currentUserAccountNumber = getLoggedInUserAccountNumber();
-  const currentUser = getUserByAccountNumber(currentUserAccountNumber);
+  const getAllRegisteredUsers = async () => {
+    const data = await getAllUsers();
+    setUsers(data);
+  };
+  useEffect(() => {
+    getAllRegisteredUsers();
+  }, []);
 
-  const schema = yup.object({
-    selectedAccount: yup.string().required("Select an account"),
-    amount: yup.string().required("Withdrawal amount required"),
-    accountPin: yup
-      .string()
-      .required("Account PIN required")
-      .length(4, "Account PIN must be exactly 4 digits"),
-  });
+  useEffect(()=>{
+    const getRegisteredUser = async () => {
+        const user = await getUserByAccountNumber(currentUserAccountNumber);
+        setUserData(user);
+      };
+      
+        getRegisteredUser();
+      }, [currentUserAccountNumber]);
+      const schema = yup.object({
+        selectAccount: yup.string().required("Please provide an account"),
+        amount: yup.string().required("Transfer amount required"),
+        accountPin: yup
+          .string()
+          .required("Account PIN required")
+          .length(4, "Account PIN must be exactly 4 digits"),
+      });
+      
+    
 
   const {
     register,
@@ -35,10 +54,19 @@ export const Transfer = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
-  const onSubmit = (data) => {
-    const currentBalance = getUserCurrentBalance();
+  const onSubmit = async (data) => {
+    const registeredUsers = await getAllUsers();
+    const currentBalance =await getUserCurrentBalance();
+    
 
-    if (data.accountPin !== currentUser.accountPin) {
+
+      const currentUserIndex =await getUserIndexByAccountNumber(
+        currentUserAccountNumber
+      );
+      const currentUser = registeredUsers[currentUserIndex];
+      
+
+    if (data.accountPin !== userData.accountPin) {
       alert("Incorrect PIN.");
       return;
     }
@@ -57,27 +85,27 @@ export const Transfer = () => {
       amount: parseInt(data.amount),
       balanceBefore: currentBalance,
       balanceAfter: currentBalance - parseInt(data.amount),
-      beneficiary: data.SelectAccount,
+      beneficiary: data.selectAccount,
     };
+   
 
-    const currentUserIndex = getUserIndexByAccountNumber(
-      currentUserAccountNumber
-    );
+    currentUser.transactions.push(transactionDetails);
 
-    registeredUsers[currentUserIndex].transactions.push(transactionDetails);
-
-    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
-    navigate("/transactions");
-    console.log(data);
+    const updatedUserData = await api.put(
+        `/MB_USER_ACCOUNTS/${currentUser.id}`,
+        currentUser
+      );
+      console.log("User data updated:", updatedUserData);
+      navigate("/transactions")
   };
 
   return (
     <DashboardLayout pageTitle="Transfer">
       <form className="form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
-          <select className="form-control" {...register("SelectAccount")}>
+          <select className="form-control" {...register("selectAccount")}>
             <option value=""> Select Account</option>
-            {registeredUsers
+            {users
               .filter((user) => user.accountNumber !== currentUserAccountNumber)
               .map(({ accountNumber, accountName }) => (
                 <option key={accountNumber} value={accountName}>

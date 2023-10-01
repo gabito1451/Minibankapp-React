@@ -1,45 +1,74 @@
-export const getAllUsers = () => {
-  const usersStr = localStorage.getItem("MB_USER_ACCOUNTS") || null;
-  const usersArr = JSON.parse(usersStr) || [];
-  return usersArr;
+import api from "../api/mb-users-account";
+export const getAllUsers = async () => {
+  try {
+    const response = await api.get("/MB_USER_ACCOUNTS");
+    const data = await response.data  ;
+    return data;
+  } catch (error) {
+    console.log("error getting users :", error);
+  }
 };
 
 export const getLoggedInUserAccountNumber = () => {
-  return localStorage.getItem("MB_LOGGEDIN_USER_ACCOUNT_NUMBER");
+  return (localStorage.getItem("MB_LOGGEDIN_USER_ACCOUNT_NUMBER"));
 };
 
 export const isLoggedIn = () => {
   const accountNumber = getLoggedInUserAccountNumber();
-  const user = getUserByAccountNumber(accountNumber);
-  return !!user;
+  return !!accountNumber;
 };
 
-export const getUserByAccountNumber = (accountNumber) => {
-  const usersArr = getAllUsers();
-  const user = usersArr.find((user) => user.accountNumber === accountNumber);
-  return user;
+export const getUserByAccountNumber = async (accountNumber) => {
+  try {
+    const usersArr = await getAllUsers();
+    const currentUser =  usersArr.find(
+      (user) => user.accountNumber === accountNumber
+    );
+    return currentUser
+   
+  } catch (error) {
+    console.error("Error getting user:", error);
+    return null; 
+  }
 };
 
-export const getUserIndexByAccountNumber = (accountNumber) => {
-  const registeredUsers = getAllUsers();
-  const userIndex = registeredUsers.findIndex(
-    (user) => user.accountNumber === accountNumber
-  );
-  return userIndex;
+export const currentUserAccountNumber = localStorage.getItem(
+  "MB_LOGGEDIN_USER_ACCOUNT_NUMBER"
+);
+
+export const getUserIndexByAccountNumber = async (accountNumber) => {
+  try {
+    const registeredUsers = await getAllUsers();
+    const userIndex = registeredUsers.findIndex(
+      (user) => user.accountNumber === accountNumber
+    );
+    return userIndex;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
-export const getUserTransactions = (
+export const getUserTransactions = async (
   accountNumber = getLoggedInUserAccountNumber()
 ) => {
-  const user = getUserByAccountNumber(accountNumber);
-  return user?.transactions || [];
+  try {
+    const user = await getUserByAccountNumber(accountNumber);
+    return  user?.transactions || [];
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const getUserCurrentBalance = (
+export const getUserCurrentBalance = async (
   accountNumber = getLoggedInUserAccountNumber()
 ) => {
-  const transactions = getUserTransactions(accountNumber);
-  const prevTransaction = transactions[transactions.length - 1];
-  const currentBalance = prevTransaction?.balanceAfter || 0;
-  return currentBalance;
+  try {
+    const transactions = await getUserTransactions(accountNumber);
+    const prevTransaction = transactions[transactions.length - 1];
+    const currentBalance = prevTransaction?.balanceAfter || 0;
+    return currentBalance;
+  } catch (error) {
+    console.log(error);
+  }
 };
+

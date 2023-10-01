@@ -1,14 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getUserCurrentBalance } from "../../helpers/user.helper";
 import { Link, useNavigate } from "react-router-dom";
 import { formatAmount } from "../../helpers/utils.helper";
 
 const DashboardLayout = ({ pageTitle, children }) => {
   const navigate = useNavigate();
+  const [balance, setBalance] = useState(0);
+
+  // const formatAmount =   (amount, locale = 'en-NG', currencyCode = 'NGN') => {
+  //   const formattedAmount =  amount.toLocaleString(locale, {
+  //     style: "currency",
+  //     currency: currencyCode,
+  //   });
+  //   return formattedAmount;
+  // }
+
+
+  const userBalance = async () => {
+    const response = await getUserCurrentBalance();
+    setBalance(response);
+  };
+  useEffect(() => {
+    userBalance();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("MB_LOGGEDIN_USER_ACCOUNT_NUMBER");
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
   };
 
   return (
@@ -43,7 +61,7 @@ const DashboardLayout = ({ pageTitle, children }) => {
         </nav>
         <div className="flex justify-between container-fixed items-center">
           <h1 className="">{pageTitle}</h1>
-          <p>Balance: {formatAmount(getUserCurrentBalance())}</p>
+          <p>Balance: {formatAmount(balance)}</p>
         </div>
       </header>
       <section className="container-fixed bg-white rounded flex min-h-screen">

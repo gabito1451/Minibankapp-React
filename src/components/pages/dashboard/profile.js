@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,26 +11,40 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Button, Popconfirm } from "antd";
 import DashboardLayout from "../../layout/dashboard.layout";
+import api from "../../../api/mb-users-account";
 
 export const Profile = () => {
   const currentUserAccountNumber = getLoggedInUserAccountNumber();
 
-  const registeredUsers = getAllUsers();
-
+  const [users, setUsers] = useState([]);
   const navigate = useNavigate();
-
   const [checked, setchecked] = useState(false);
+
+  const getRegisteredUsers = async () => {
+    const allRegisteredUsers = await getAllUsers();
+    setUsers(allRegisteredUsers);
+  };
+  useEffect(() => {
+    getRegisteredUsers();
+  }, []);
 
   const handleChangePinToggle = () => {
     setchecked(!checked);
   };
 
-  const closeUserAccount = () => {
-    const userIndex = getUserIndexByAccountNumber(currentUserAccountNumber);
-    registeredUsers.splice(userIndex, 1);
-    const registeredUsersLeft = JSON.stringify(registeredUsers);
-    localStorage.setItem("MB_USER_ACCOUNTS", registeredUsersLeft);
-    navigate("/");
+  const closeUserAccount = async () => {
+    try {
+      const userIndex = await getUserIndexByAccountNumber(
+        currentUserAccountNumber
+      );
+      const currentUser = users[userIndex];
+      users.splice(userIndex, 1);
+      const registeredUsersLeft = users;
+      await api.put(`/MB_USER_ACCOUNTS/${currentUser.id}`, registeredUsersLeft);
+      navigate("/");
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
   };
 
   const schema = yup.object({
@@ -50,35 +64,46 @@ export const Profile = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
-  const onSubmit = (data) => {
-    const currentUserIndex = getUserIndexByAccountNumber(
-      currentUserAccountNumber
-    );
-    registeredUsers[currentUserIndex].accountName = data.accountName;
-    if (checked) {
-      const savedUserPin = registeredUsers[currentUserIndex].accountPin;
-      if (!data.currentPin) {
-        alert("Current PIN is required");
-        return;
-      }
-      if (data.currentPin !== savedUserPin) {
-        alert("Current PIN is incorrect");
-        return;
-      }
-      if (data.newPin !== data.confirmNewPin) {
-        alert("PINs do not match");
-        return;
-      }
-      if (data.newPin === savedUserPin) {
-        alert("You entered your current PIN. Choose a different PIN");
-        return;
-      }
+  const onSubmit = async (data) => {
+    try {
+      const users = await getAllUsers();
+      console.log(users);
+      const currentUserIndex = await getUserIndexByAccountNumber(
+        currentUserAccountNumber
+      );
+      console.log(currentUserIndex);
+      const currentUser = users[currentUserIndex];
+      console.log(currentUser);
+      currentUser.accountName = data.accountName;
 
-      // all is good
-      registeredUsers[currentUserIndex].accountPin = data.newPin;
+      if (checked) {
+        const savedUserPin = currentUser.accountPin;
+        if (!data.currentPin) {
+          alert("Current PIN is required");
+          return;
+        }
+        if (data.currentPin !== savedUserPin) {
+          alert("Current PIN is incorrect");
+          return;
+        }
+        if (data.newPin !== data.confirmNewPin) {
+          alert("PINs do not match");
+          return;
+        }
+        if (data.newPin === savedUserPin) {
+          alert("You entered your current PIN. Choose a different PIN");
+          return;
+        }
+
+        // all is good
+        
+        currentUser.accountPin = data.newPin;
+      }
+      await api.put(`/MB_USER_ACCOUNTS/${currentUser.id}`, currentUser);
+      navigate("/transactions");
+    } catch (error) {
+      console.log(error);
     }
-    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
-    navigate("/transactions");
   };
   return (
     <DashboardLayout pageTitle="Profile">

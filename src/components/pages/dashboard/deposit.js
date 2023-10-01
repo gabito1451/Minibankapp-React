@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,12 +11,25 @@ import {
   getLoggedInUserAccountNumber,
 } from "../../../helpers/user.helper";
 import DashboardLayout from "../../layout/dashboard.layout";
+import api from "../../../api/mb-users-account";
 
 export const Deposit = () => {
   const navigate = useNavigate();
-
   const currentUserAccountNumber = getLoggedInUserAccountNumber();
-  const currentUser = getUserByAccountNumber(currentUserAccountNumber);
+  const [userData, setUserData] = useState([]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getUserByAccountNumber(currentUserAccountNumber);
+        setUserData(user);
+      } catch (error) {
+        console.log( error);
+      }
+    };
+
+    fetchUserData();
+  }, [currentUserAccountNumber]);
 
   const schema = yup.object({
     amount: yup.string().required("Deposit amount required"),
@@ -33,31 +46,43 @@ export const Deposit = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
-  const onSubmit = (data) => {
-    const registeredUsers = getAllUsers();
-    const currentBalance = getUserCurrentBalance();
-
-    if (data.accountPin !== currentUser.accountPin) {
+  const onSubmit = async (data) => {
+    if (data.accountPin !== userData.accountPin) {
       alert("Incorrect PIN.");
       return;
     }
-    const transactionDetails = {
-      timestamp: new Date(),
-      transactionReference: `TR${Date.now()}`,
-      type: "Deposit",
-      amount: parseInt(data.amount),
-      balanceBefore: currentBalance,
-      balanceAfter: currentBalance + parseInt(data.amount),
-    };
 
-    const currentUserIndex = getUserIndexByAccountNumber(
-      currentUserAccountNumber
-    );
+    try {
+      // Fetch the current user's data
+      const registeredUsers = await getAllUsers();
+      const currentUserIndex = await getUserIndexByAccountNumber(
+        currentUserAccountNumber
+      );
+      const currentUser = registeredUsers[currentUserIndex];
 
-    registeredUsers[currentUserIndex].transactions.push(transactionDetails);
+      // Calculate the transaction details
+      const currentBalance = await getUserCurrentBalance();
+      const transactionDetails = {
+        timestamp: new Date(),
+        transactionReference: `TR${Date.now()}`,
+        type: "Deposit",
+        amount: parseInt(data.amount),
+        balanceBefore: currentBalance,
+        balanceAfter: currentBalance + parseInt(data.amount),
+      };
 
-    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
-    navigate("/transactions");
+      currentUser.transactions.push(transactionDetails);
+
+      const updatedUserData = await api.put(
+        `/MB_USER_ACCOUNTS/${currentUser.id}`,
+        currentUser
+      );
+      console.log("User data updated:", updatedUserData);
+
+      navigate("/transactions");
+    } catch (error) {
+      console.error("Error adding transaction:", error);
+    }
   };
 
   return (

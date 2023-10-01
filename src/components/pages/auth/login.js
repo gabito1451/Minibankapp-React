@@ -1,31 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useNavigate } from "react-router-dom";
 import {
-  getAllUsers,
   getUserByAccountNumber,
+  getAllUsers,
   isLoggedIn,
 } from "../../../helpers/user.helper";
 
 export const Login = () => {
+  const [users, setUsers] = useState([]);
+
+  const getRegisteredUsers = async () => {
+    const data = await getAllUsers();
+    setUsers(data);
+  };
+  useEffect(() => {
+    getRegisteredUsers();
+  }, []);
+
   const navigate = useNavigate();
   useEffect(() => {
     if (isLoggedIn()) {
+      navigate("/transaction");
       navigate("/transactions");
     }
   }, [navigate]);
 
   const [inputValue, setInputValue] = useState();
 
-  const users = getAllUsers();
-
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
-
   const schema = yup.object({
     accountNumber: yup
       .string()
@@ -36,7 +43,6 @@ export const Login = () => {
       .required("Account PIN required")
       .length(4, "Account PIN must be exactly 4 digits"),
   });
-
   const {
     register,
     handleSubmit,
@@ -45,9 +51,10 @@ export const Login = () => {
     resolver: yupResolver(schema),
   });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     const { accountNumber, accountPin } = data;
-    const user = getUserByAccountNumber(accountNumber);
+
+    const user = await getUserByAccountNumber(accountNumber);
 
     if (!user) {
       alert("Account not found");
@@ -58,6 +65,11 @@ export const Login = () => {
       return;
     }
 
+    localStorage.setItem(
+      "MB_LOGGEDIN_USER_ACCOUNT_NUMBER",
+      JSON.stringify(accountNumber)
+    );
+    navigate("/transaction");
     localStorage.setItem("MB_LOGGEDIN_USER_ACCOUNT_NUMBER", accountNumber);
     navigate("/transactions", { replace: true });
   };
@@ -68,10 +80,9 @@ export const Login = () => {
       <form className="account-form" onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <select className="form-control" {...register("accountNumber")}>
-            <option value="">Select Account</option>
-            {users.map(({ accountNumber, accountName, accountPin }) => (
-              <option key={accountNumber} value={accountNumber}>
-                {accountName} ({accountPin})
+            {users.map((user) => (
+              <option key={user.accountNumber} value={user.accountNumber}>
+                {user.accountName}
               </option>
             ))}
           </select>
@@ -93,7 +104,6 @@ export const Login = () => {
           Login
         </button>
       </form>
-
       <p className="text-center">
         Don't have an account? <Link to="/register">Register</Link>
       </p>

@@ -1,5 +1,4 @@
-import React from "react";
-import DashboardLayout from "../../layout/dashboard.layout";
+import React, { useEffect, useState } from "react";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,15 +10,30 @@ import {
   getUserIndexByAccountNumber,
   getLoggedInUserAccountNumber,
 } from "../../../helpers/user.helper";
+import DashboardLayout from "../../layout/dashboard.layout";
+import api from "../../../api/mb-users-account";
 
 export const Withdraw = () => {
   const navigate = useNavigate();
-
   const currentUserAccountNumber = getLoggedInUserAccountNumber();
-  const currentUser = getUserByAccountNumber(currentUserAccountNumber);
+  const [userData, setUserData] = useState([]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = await getUserByAccountNumber(currentUserAccountNumber);
+        setUserData(user);
+        
+      } catch (error) {
+        console.log("Error in useEffect:", error);
+      }
+    };
+
+    fetchUserData();
+  }, [currentUserAccountNumber]);
 
   const schema = yup.object({
-    amount: yup.string().required("Withdrawal amount required"),
+    amount: yup.string().required("Deposit amount required"),
     accountPin: yup
       .string()
       .required("Account PIN required")
@@ -33,40 +47,45 @@ export const Withdraw = () => {
   } = useForm({
     resolver: yupResolver(schema),
   });
-  const onSubmit = (data) => {
-    const registeredUsers = getAllUsers();
-    const currentBalance = getUserCurrentBalance();
-
-    if (data.accountPin !== currentUser.accountPin) {
+  const onSubmit = async (data) => {
+    if (data.accountPin !== userData.accountPin) {
       alert("Incorrect PIN.");
       return;
     }
-    if (data.amount > currentBalance) {
-      alert("Insufficient Balance");
-      return;
+
+    try {
+      // Fetch the current user's data
+      const registeredUsers = await getAllUsers();
+      const currentUserIndex = await getUserIndexByAccountNumber(
+        currentUserAccountNumber
+      );
+      const currentUser = registeredUsers[currentUserIndex];
+
+      // Calculate the transaction details
+      const currentBalance = await getUserCurrentBalance();
+      const transactionDetails = {
+        timestamp: new Date(),
+        transactionReference: `TR${Date.now()}`,
+        type: "Withdraw",
+        amount: parseInt(data.amount),
+        balanceBefore: currentBalance,
+        balanceAfter: currentBalance - parseInt(data.amount),
+      };
+
+      currentUser.transactions.push(transactionDetails);
+
+      const updatedUserData = await api.put(
+        `/MB_USER_ACCOUNTS/${currentUser.id}`,
+        currentUser
+      );
+      console.log("User data updated:", updatedUserData);
+
+      navigate("/transactions");
+    } catch (error) {
+      console.error("Error adding transaction:", error);
     }
-    if (data.amount < 1) {
-      alert("Enter a valid amount");
-      return;
-    }
-    const transactionDetails = {
-      timestamp: new Date(),
-      transactionReference: `TR${Date.now()}`,
-      type: "Withdrawal",
-      amount: parseInt(data.amount),
-      balanceBefore: currentBalance,
-      balanceAfter: currentBalance - parseInt(data.amount),
-    };
-
-    const currentUserIndex = getUserIndexByAccountNumber(
-      currentUserAccountNumber
-    );
-
-    registeredUsers[currentUserIndex].transactions.push(transactionDetails);
-
-    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(registeredUsers));
-    navigate("/transactions");
   };
+
   return (
     <DashboardLayout pageTitle="Withdraw">
       <form className="form" onSubmit={handleSubmit(onSubmit)}>
@@ -75,7 +94,6 @@ export const Withdraw = () => {
           <input
             type="number"
             className="form-control"
-            required
             {...register("amount")}
           />
           <p className="form-error">{errors.amount?.message}</p>
@@ -86,14 +104,13 @@ export const Withdraw = () => {
             type="password"
             maxLength={4}
             className="form-control"
-            required
             {...register("accountPin")}
           />
 
           <p className="form-error">{errors.accountPin?.message}</p>
         </div>
         <button type="submit" className="btn btn-secondary">
-          Withdraw
+          Deposit
         </button>
       </form>
     </DashboardLayout>

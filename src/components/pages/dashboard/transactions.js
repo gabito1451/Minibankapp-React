@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   getAllUsers,
   getLoggedInUserAccountNumber,
@@ -7,23 +7,50 @@ import {
 } from "../../../helpers/user.helper";
 import DashboardLayout from "../../layout/dashboard.layout";
 import { Button, Popconfirm } from "antd";
+import api from "../../../api/mb-users-account";
 
 export const Transactions = () => {
   const currentUserAccountNumber = getLoggedInUserAccountNumber();
-  const currentUserTransactions = getUserTransactions();
+  const [userTransactions, setUserTransactions] = useState([]);
 
-  const [userTransactionArr, setUserTransactionArr] = useState(
-    currentUserTransactions
-  );
+  
+  useEffect(() => {
+    const fetchCurrentUserTransaction = async () => {
+      try {
+        const data = await getUserTransactions(currentUserAccountNumber);
+        setUserTransactions(data);
+      } catch (error) {
+        console.log(error)
+      }
+    };
+    fetchCurrentUserTransaction();
+  }, [currentUserAccountNumber]);
 
-  const clearTransactionHistory = () => {
-    const allUsers = getAllUsers();
-    const currentUserIndex = getUserIndexByAccountNumber(
-      currentUserAccountNumber
-    );
-    allUsers[currentUserIndex].transactions = [];
-    localStorage.setItem("MB_USER_ACCOUNTS", JSON.stringify(allUsers));
-    setUserTransactionArr([]);
+  const clearTransactionHistory = async () => {
+    try {
+      const allUsers = await getAllUsers();
+
+      const currentUserIndex = await getUserIndexByAccountNumber(
+        currentUserAccountNumber
+      );
+      console.log(currentUserIndex);
+      const currentUser = allUsers[currentUserIndex];
+
+      if (currentUserIndex !== -1) {
+        currentUser.transactions = [];
+      } else {
+        throw new Error("User not found");
+      }
+
+      
+        await api.put(`/MB_USER_ACCOUNTS/${currentUser.id}`, currentUser);
+      
+
+      setUserTransactions([]);
+      
+    } catch (error) {
+      console.error("Error clearing transaction history:", error);
+    }
   };
 
   return (
@@ -42,7 +69,7 @@ export const Transactions = () => {
         </Popconfirm>
       </div>
       <div className="mt-3">
-        <table className="w-full">
+        <table className="w-full"> 
           <thead>
             <tr>
               <th>Timestamp</th>
@@ -55,7 +82,7 @@ export const Transactions = () => {
             </tr>
           </thead>
           <tbody>
-            {userTransactionArr.map((transaction) => (
+            {userTransactions.map((transaction) => (
               <tr key={transaction.transactionReference}>
                 <td>{transaction.timestamp}</td>
                 <td>{transaction.transactionReference}</td>
